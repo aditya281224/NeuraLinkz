@@ -16,7 +16,8 @@ export default defineSchema({
     .index("by_username", ["username"]) 
     .searchIndex("search_name", { searchField: "name" }) 
     .searchIndex("search_email", { searchField: "email" }),
-     posts: defineTable({
+     
+  posts: defineTable({
     title: v.string(),
     content: v.string(), 
     status: v.union(v.literal("draft"), v.literal("published")),
