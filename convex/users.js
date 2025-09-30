@@ -79,7 +79,7 @@ export const updateUserName = mutation({
       throw new Error("Username must be between 3 and 20 characters");
     }
 
-    if(args.user!== user.username){
+    if(args.username!== user.username){
       const existingUser=await ctx.db.query("users").withIndex("by_username",(q)=>q.eq("username",args.username)).unique();
 
       if(existingUser){
