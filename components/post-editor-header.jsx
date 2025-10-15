@@ -14,7 +14,7 @@ const PostEditorHeader = ({
   onPublish,
   onSchedule,
   onSettingsOpen,
-  onBack
+  onBack 
 }) => {
 
   const [isPublishMenuOpen,setIsPublishMenuOpen]=useState(false);

@@ -8,6 +8,7 @@ import { useConvexMutation } from "@/hooks/use-convex-query";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import PostEditorHeader from "./post-editor-header";
+import PostEditorContent from "./post-editor-content";
 
 const postSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title too long"),
@@ -22,6 +23,8 @@ const PostEditor = ({ initialData = null, mode= "create" }) => {
   const [isSettingOpen, setSettingsOpen] = useState(false);
   const [isImageModalOpen,setIsImageModalOpen]=useState(false);
   const [imageModalType,setImageModalType]=useState("featured");
+  const [quillRef,setQuillRef]=useState(null);
+
 
   const router=useRouter();
 
@@ -33,7 +36,7 @@ const PostEditor = ({ initialData = null, mode= "create" }) => {
     api.posts.update
   );
 
-  useForm({
+  const form=useForm({
     resolver: zodResolver(postSchema),
     defaultValues: {
       title: initialData?.title || "",
@@ -64,6 +67,15 @@ const PostEditor = ({ initialData = null, mode= "create" }) => {
       onSchedule={handleSchedule}
       onSettingsOpen={() => setSettingsOpen(true)}
       onBack={() => router.push("/dashboard")}
+    />
+
+    <PostEditorContent 
+      form={form}
+      setQuillRef={setQuillRef}
+      onImageUpload={(type) => {
+        setImageModalType(type)
+        setIsImageModalOpen(true)
+      }}
     />
   </div>
 );

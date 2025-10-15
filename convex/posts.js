@@ -5,10 +5,10 @@ import { internal } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
 
 export const getUserDraft = query({
-  handler: async (cxt) => {
-    const user = await cxt.runQuery(internal.users.getCurrentUser);
+  handler: async (ctx) => {
+    const user = await ctx.runQuery(internal.users.getCurrentUser);
 
-    const draft = await cxt.db
+    const draft = await ctx.db
       .query("posts")
       .filter((q) =>
         q.and(
@@ -33,9 +33,9 @@ export const create = mutation({
     scheduledFor: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const user = await cxt.runQuery(internal.users.getCurrentUser);
+    const user = await ctx.runQuery(internal.users.getCurrentUser);
 
-    const existingDraft = await cxt.db
+    const existingDraft = await ctx.db
       .query("posts")
       .filter((q) =>
         q.and(
@@ -107,7 +107,7 @@ export const update = mutation({
     scheduledFor: v.optional(v.number()),
   },
   handler: async (ctx,args) => {
-    const user = await cxt.runQuery(internal.users.getCurrentUser);
+    const user = await ctx.runQuery(internal.users.getCurrentUser);
     const post=await ctx.db.get(args.id);
     if(!post){
       throw new Error("Posts not found");
