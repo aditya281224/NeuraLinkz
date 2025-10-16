@@ -9,6 +9,7 @@ import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import PostEditorHeader from "./post-editor-header";
 import PostEditorContent from "./post-editor-content";
+import PostEditorSettings from "./post-editor-settings";
 
 const postSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title too long"),
@@ -76,6 +77,13 @@ const PostEditor = ({ initialData = null, mode= "create" }) => {
         setImageModalType(type)
         setIsImageModalOpen(true)
       }}
+    />
+
+    <PostEditorSettings
+      isOpen={isSettingOpen}
+      onClose={()=>setSettingsOpen(false)}
+      form={form}
+      mode={mode}
     />
   </div>
 );

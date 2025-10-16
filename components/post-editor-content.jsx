@@ -175,7 +175,7 @@ const PostEditorContent = ({form,setQuillRef,onImageUpload}) => {
 
           <div>
             {!hasContent ? <Button
-              onClick={()=>handleAi("generate")}
+              onClick={()=>handleAI("generate")}
               disabled={!hasTitle || isGenerating || isImproving}
               variant="outline"
               size="sm"
@@ -229,6 +229,11 @@ const PostEditorContent = ({form,setQuillRef,onImageUpload}) => {
               lineHeight:"1.7"
             }}
             />
+
+            {errors.content && (
+              <p className='text-red-400 mt-2'>{errors.content.message}</p>
+            )}
+
           </div>
         </div>
       </main>
