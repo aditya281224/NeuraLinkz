@@ -1,8 +1,22 @@
-"use client"
-import React, { useState } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
-
+"use client";
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Button } from "./ui/button";
+import { Plus } from "lucide-react";
+import { Input } from "./ui/input";
 
 const CATEGORIES = [
   "Technology",
@@ -14,14 +28,38 @@ const CATEGORIES = [
   "Health",
   "Travel",
   "Food",
-  "Entertainment"
-]
+  "Entertainment",
+];
 
-const PostEditorSettings = ({isOpen,onClose,form,mode}) => {
+const PostEditorSettings = ({ isOpen, onClose, form, mode }) => {
+  const [tagInput, setTagInput] = useState("");
 
-  const [tagInput,setTagInput]=useState("")
+  const { watch, setValue } = form;
 
-  const {watch,setValue} = form
+  
+
+  const watchedValues=watch();
+
+  const addTag = () =>{
+
+    const tag=tagInput.trim().toLowerCase();
+    if(tag && !watchedValues.tags.includes(tag) && watchedValues.tag.length < 10 ){
+      setValue("tags",[...watchedValues.tags,tag]);
+      setTagInput("")
+    }
+
+  } 
+
+  const handleTagInput=()=>{
+    if(e.key==="Enter" || e.key === ","){
+      e.preventDefault();;
+      addTag();
+    }
+  }
+
+  const removeTag = (tagToRemove) =>{
+    setValue("tags",watchedValues.tags.filter((tag) =>tag !== tagToRemove))
+  }
 
   return (
     <div>
@@ -32,23 +70,55 @@ const PostEditorSettings = ({isOpen,onClose,form,mode}) => {
             <DialogDescription>Configure your details</DialogDescription>
           </DialogHeader>
 
-          <div className='space-y-6'>
-            <div className='space-y-2'>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue/>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Select
+                value={watchedValues.category}
+                onValueChange={(value) => setValue("category", value)}
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-600">
+                  <SelectValue placeholder="Select Category..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem></SelectItem>
+                  {CATEGORIES.map((category)=>(
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+
+              <div className="space-y-3"> 
+                  <label className="text-white text-sm font-medium">Tags</label>
+
+                  <div className="flex space-x-2">
+                    <Input
+                      value={tagInput}
+                      onChange={(e)=>setTagInput(e.target.value)}
+                      onKeyDown={handleTagInput}
+                      placeholder="Add tags..."
+                      className="bg-slate-800 border-slate-600"
+                    />
+
+
+                    <Button 
+                      type="button"
+                      onClick={addTag}
+                      variant="outline"
+                      size="sm"
+                      className="border-slate-600"
+                      >
+                      <Plus className="h-4 w-4"/>
+                    </Button>
+                  </div>
+              </div>
+
           </div>
         </DialogContent>
       </Dialog>
-      
     </div>
-  )
-}
+  );
+};
 
-export default PostEditorSettings
+export default PostEditorSettings;
