@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation";
 import PostEditorHeader from "./post-editor-header";
 import PostEditorContent from "./post-editor-content";
 import PostEditorSettings from "./post-editor-settings";
+import { Watch } from "lucide-react";
+import { toast } from "sonner";
 
 const postSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title too long"),
@@ -51,11 +53,90 @@ const PostEditor = ({ initialData = null, mode= "create" }) => {
     },
   });
 
+  const {handleSubmit,watch,setValue} = form;
+  const watchedValues=watch();
 
-  const handleSave=()=>{};
-  const handlePublish=()=>{};
-  const handleSchedule=()=>{};
+
+  const handleSave=(silent=false)=>{
+    handleSubmit((data) => onSubmit(data,'draft',silent))();
+  };
+
+  useEffect(()=>{
+    if(!watchedValues.title && !watchedValues.content) return;
+    const autoSave=setInterval(()=>{
+      if(watchedValues.title || watchedValues.content){
+        if(mode === "create") handleSave(true);
+      }
+    },30000)
+
+    return () => clearInterval(autoSave);
+  },[watchedValues.title,watchedValues.content])
+
+  const onSubmit = async(data,action,silent=false)=>{
+    try{
+      const postData = {
+        title: data.title,
+        content: data.content,
+        category: data.category || undefined,
+        tags: data.tags,
+        featuredImage: data.featuredImage || undefined,
+        status: action === "publish" ? "published" : "draft",
+        scheduledFor: data.scheduledFor
+          ? new Date(data.scheduledFor).getTime()
+          : undefined,
+      };
+      let resultId;
+
+      if (mode === "edit" && initialData?._id) {
+        resultId = await updatePost({
+          id: initialData._id,
+          ...postData,
+        });
+      } else if (initialData?._id && action === "draft") {
+        resultId = await updatePost({
+          id: initialData._id,
+          ...postData,
+        });
+      } else {
+        
+        resultId = await createPost(postData);
+      }
+
+      if (!silent) {
+        const message =
+          action === "publish" ? "Post published!" : "Draft saved!";
+        toast.success(message);
+        if (action === "publish") router.push("/dashboard/posts");
+      }
+
+      return resultId;
+    }
+
+    catch(error){
+       if (!silent) toast.error(error.message || "Failed to save post");
+      throw error;
+    }
+  };
+
+  const handlePublish=()=>{
+    handleSubmit((data) => onSubmit(data,'publish'))();
+  };
+
+
+
+  const handleSchedule=()=>{
+    if(!watchedValues.scheduledFor){
+      toast.error("Please select a date and time to schedule");
+      return;
+    }
+
+    handleSubmit((data) =>onSubmit(data,"schedule"))();
+
+  };
   
+  const handleImageSelect = (imageData) =>{
+    
+  }
 
   return (
   <div className="min-h-screen bg-slate-900 text-white">
