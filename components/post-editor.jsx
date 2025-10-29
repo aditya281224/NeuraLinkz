@@ -12,6 +12,7 @@ import PostEditorContent from "./post-editor-content";
 import PostEditorSettings from "./post-editor-settings";
 import { Watch } from "lucide-react";
 import { toast } from "sonner";
+import ImageUploadModal from "./image-upload-modal";
 
 const postSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title too long"),
@@ -165,6 +166,15 @@ const PostEditor = ({ initialData = null, mode= "create" }) => {
       onClose={()=>setSettingsOpen(false)}
       form={form}
       mode={mode}
+    />
+
+    <ImageUploadModal
+      isOpen={isImageModalOpen}
+      onClose={()=>setIsImageModalOpen(false)}
+      onImageSelect={handleImageSelect}
+      title={
+        imageModalType==="featured"?"Upload Featured Image":"Insert Image"
+      }
     />
   </div>
 );
