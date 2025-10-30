@@ -1,17 +1,23 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useDropzone } from 'react-dropzone';
-import z from 'zod';
-import { Check, Loader2, Upload, Wand2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { uploadToImageKit } from '@/lib/imagekit';
-import { Badge } from './ui/badge';
-import { Button } from './ui/button';
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useDropzone } from "react-dropzone";
+import z from "zod";
+import { Check, ImageIcon, Loader2, Upload, Wand2 } from "lucide-react";
+import { toast } from "sonner";
+import { uploadToImageKit } from "@/lib/imagekit";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
 
 const transformationSchema = z.object({
   aspectRatio: z.string().default("original"),
@@ -59,17 +65,16 @@ const ImageUploadModal = ({
   isOpen,
   onClose,
   onImageSelect,
-  title="Upload & Transform Image",
+  title = "Upload & Transform Image",
 }) => {
+  const [activeTab, setActiveTab] = useState("upload");
+  const [uploadedImage, setUploadedImage] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [transformedImage, setTransformedImage] = useState(null);
+  const [isTransforming, setIsTransforming] = useState(false);
 
-  const [activeTab,setActiveTab]=useState("upload");
-  const [uploadedImage,setUploadedImage]=useState(null);
-  const [isUploading,setIsUploading]=useState(false);
-  const [transformedImage,setTransformedImage]=useState(null);
-  const [isTransforming,setIsTransforming]=useState(false);
-
-  const {watch,setValue,reset}=useForm({
-    resolver:zodResolver(transformationSchema),
+  const { watch, setValue, reset } = useForm({
+    resolver: zodResolver(transformationSchema),
     defaultValues: {
       aspectRatio: "original",
       customWidth: 800,
@@ -82,31 +87,31 @@ const ImageUploadModal = ({
       backgroundRemoved: false,
       dropShadow: false,
     },
-  })
+  });
 
-  const watchedValues=watch();
+  const watchedValues = watch();
 
-  const handleClose=()=>{
+  const handleClose = () => {
     onClose();
     //resetForm();
-  }
+  };
 
-  const onDrop = async(acceptedFiles) =>{
-    const file=acceptedFiles[0];
-    if(!file) return;
+  const onDrop = async (acceptedFiles) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
 
-    if(!file.type.startsWith("image/")){
-      toast.error("Please select an image file")
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
       return;
     }
 
-    if(file.size>10*1024*1024){
-      toast.error("File size must be less than 10MB")
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be less than 10MB");
     }
 
     setIsUploading(true);
 
-    try{
+    try {
       const fileName = `post-image-${Date.now()}-${file.name}`;
       const result = await uploadToImageKit(file, fileName);
 
@@ -118,24 +123,42 @@ const ImageUploadModal = ({
       } else {
         toast.error(result.error || "Upload failed");
       }
-    }
-    catch(error){
+    } catch (error) {
       console.error("Upload error:", error);
       toast.error("Upload failed. Please try again.");
-    }
-    finally {
+    } finally {
       setIsUploading(false);
     }
-  }
+  };
 
-  const {getRootProps,getInputProps,isDragActive} = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept:{
-      "image/*":[".jpeg",".jpg",".png",".webp",".gif"],
-
+    accept: {
+      "image/*": [".jpeg", ".jpg", ".png", ".webp", ".gif"],
     },
-    multiple:false,
-  })
+    multiple: false,
+  });
+
+  const handleSelectImage = () => {
+    if (transformedImage) {
+      onImageSelect({
+        url: transformedImage,
+        originalUrl: uploadedImage?.url,
+        fileId: uploadedImage?.fileId,
+        name: uploadedImage?.name,
+        width: uploadedImage?.width,
+        height: uploadedImage?.height,
+      });
+      onClose();
+      resetForm();
+    }
+  };
+
+  const applyTransformations = async () => {
+    
+  };
+
+  const resetTransformations = async () => {};
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -149,33 +172,35 @@ const ImageUploadModal = ({
         <Tabs defaultValue="account" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upload">Upload</TabsTrigger>
-            <TabsTrigger value="transform" disabled={!uploadedImage}>Transform</TabsTrigger>
+            <TabsTrigger value="transform" disabled={!uploadedImage}>
+              Transform
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="upload" className="space-y-4">
-            <div 
-            {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors`}
+            <div
+              {...getRootProps()}
+              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors`}
             >
               <input {...getInputProps()} />
-              {isUploading ? 
-              (
-              <div className='space-y-4'>
-                <Loader2 className='h-12 w-12 mx-auto animate-spin text-purple-400' />
-                <p className='text-slate-300'>Uploading image...</p>
-              </div>
-              )
-              
-              :(<div className='space-y-4'>
-                <Upload className='h-12 w-12 mx-auto text-slate-400'/>
-                <div>
-                  <p className='text-lg text-white'>
-                    {isDragActive ?"Drop the image here":"Drag & drop an image here"}
-                  </p>
-                  <p className='text-sm text-slate-400 mt-2'>
-                    or click to select a file (JPG,PNG,WebP,GIF-Max 10MB)
-                  </p>
+              {isUploading ? (
+                <div className="space-y-4">
+                  <Loader2 className="h-12 w-12 mx-auto animate-spin text-purple-400" />
+                  <p className="text-slate-300">Uploading image...</p>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-4">
+                  <Upload className="h-12 w-12 mx-auto text-slate-400" />
+                  <div>
+                    <p className="text-lg text-white">
+                      {isDragActive
+                        ? "Drop the image here"
+                        : "Drag & drop an image here"}
+                    </p>
+                    <p className="text-sm text-slate-400 mt-2">
+                      or click to select a file (JPG,PNG,WebP,GIF-Max 10MB)
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
             {uploadedImage && (
@@ -202,12 +227,80 @@ const ImageUploadModal = ({
             )}
           </TabsContent>
           <TabsContent value="transform" className="space-y-6">
-            Transform
+            <div className="grid lg:grid-cols-2 gap-6 max-h-[60vh] overflow-y-auto">
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white flex items-center">
+                    <Wand2 className="h-5 w-5 mr-2" />
+                    AI Transformations
+                  </h3>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h3>
+                  <ImageIcon className="h-5 w-5 mr-2" />
+                  Preview
+                </h3>
+
+                {transformedImage && (
+                  <div className="relative">
+                    <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                      <img
+                        src={transformedImage}
+                        alt="Transformed preview"
+                        className="w-full h-auto max-h-96 object-contain rounded-lg mx-auto"
+                        onError={() => {
+                          toast.error("Failed to load transformed image");
+                          setTransformedImage(uploadedImage?.url);
+                        }}
+                      />
+                    </div>
+
+                    {isTransforming && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+                        <div className="bg-slate-800 rounded-lg p-4 flex items-center space-x-3">
+                          <Loader2 className="h-5 w-5 animate-spin text-purple-400" />
+                          <span className="text-white">
+                            Applying transformations
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {uploadedImage && transformedImage && (
+                  <div className="text-center space-y-4">
+                    <div className="text-sm text-size-400">
+                      Current image URL ready for use
+                    </div>
+
+                    <div className="flex gap-3 justify-center">
+                      <Button
+                        onClick={handleSelectImage}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Check className="h-4 2-4 mr-2" />
+                        Use This Image
+                      </Button>
+
+                      <Button
+                        onClick={handleClose}
+                        variant="outline"
+                        className="border-slate-600 hover:bg-slate-700"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-export default ImageUploadModal
+export default ImageUploadModal;
